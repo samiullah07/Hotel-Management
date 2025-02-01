@@ -3,5 +3,6 @@ from .views import *
 
 
 urlpatterns = [
-    path("",Index)
+    path("",Index),
+    path("hotel-api/",get_api)
 ]

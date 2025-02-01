@@ -5,7 +5,6 @@ import uuid
 
 class BaseModel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    amenity = models.CharField(max_length=200)
     created_at = models.DateField(auto_now_add=True)
     updated_at = models.DateField(auto_now=True)
 
@@ -22,7 +21,7 @@ class Hotel(BaseModel):
     hotel_name= models.CharField(max_length=200)
     amenity = models.ManyToManyField(Amenities)
     hotel_price = models.IntegerField()
-    hotel_description = models.CharField(max_length=300)
+    hotel_description = models.TextField()
     banner_img = models.ImageField(upload_to="hotel_images")
 
     def __str__(self):
