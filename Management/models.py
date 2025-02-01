@@ -1,3 +1,34 @@
 from django.db import models
-
+import uuid
 # Create your models here.
+
+
+class BaseModel(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    amenity = models.CharField(max_length=200)
+    created_at = models.DateField(auto_now_add=True)
+    updated_at = models.DateField(auto_now=True)
+
+    class Meta:
+        abstract = True
+class Amenities(BaseModel):
+    amenity_names = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.amenity_names
+
+
+class Hotel(BaseModel):
+    hotel_name= models.CharField(max_length=200)
+    amenity = models.ManyToManyField(Amenities)
+    hotel_price = models.IntegerField()
+    hotel_description = models.CharField(max_length=300)
+    banner_img = models.ImageField(upload_to="hotel_images")
+
+    def __str__(self):
+        return self.hotel_name
+
+
+class HotelImages(BaseModel):
+    hotel = models.ForeignKey(Hotel,related_name="all_hotel", on_delete=models.CASCADE)
+    image = models.ImageField(upload_to="hotel_images")
