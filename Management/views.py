@@ -4,7 +4,10 @@ from .models import *
 # Create your views here.
 
 def Index(request):
-    return HttpResponse("Hello")
+    amenities = Amenities.objects.all()
+    
+
+    return render(request,"index.html",{"amenities":amenities})
 
 
 
@@ -31,6 +34,7 @@ def get_api(request):
            "hotel_description" : obj.hotel_description,
            "hotel_price" : obj.hotel_price,
            "banner_image" : str(obj.banner_img),
+           "get_amenities" : obj.get_Amenities()
                         })
     
 
