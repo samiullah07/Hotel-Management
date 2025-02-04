@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->   
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+    <title>Hotel Search</title>
+  </head>        
+  <body>
+    <div class="container mt-5 pt-5">
+       <div class="row">
+        <div class="col-4">
+            <select name="amenities" id="amenities" class="form-control">
+                <option value="Choose Amenities">
+                    Choose Amenities
+                </option>
+                {% for amenity in amenities %}
+                    <option value="{{ amenity.id }}">{{ amenity.amenity_names }}</option>
+                {% endfor %}
+            </select>
+        </div>
+          
+        <div class="col-4">
+            <select name="sort" id="sort" class="form-control">
+                <option value="des">Descending</option>
+                <option value="asc">Ascending</option>
+            </select>
+        </div>
+        
+        <div class="col-4">
+            <label for="customRange3" class="form-label">Price Range: <span id="price-value">0</span></label>
+            <input type="range" class="form-range" value="0" min="0" max="5000" step="1000" id="customRange3">
+        </div>
+
+       </div>
+       <div class="row" id="hotels-container">
+          <!-- Hotels will be displayed here -->
+       </div>
+    </div>
+
+    <script>
+        // Function to build the API URL with query parameters
+        function buildApiUrl() {
+            const amenitiesSelect = document.querySelector('select[name="amenities"]');
+            const priceRange = document.getElementById("customRange3");
+            const sortSelect = document.querySelector('select[name="sort"]');
+            
+            let url = new URL("http://127.0.0.1:8000/hotel-api/");
+            
+            // Amenities filter
+            const selectedAmenity = amenitiesSelect.value;
+            if (selectedAmenity && selectedAmenity !== "Choose Amenities") {
+                url.searchParams.append('amenity', selectedAmenity);
+            }
+    
+            // Price filter (only add if not default max value)
+            const selectedPrice = parseInt(priceRange.value);
+            if (selectedPrice && selectedPrice !== 5000) {
+                url.searchParams.append('price', selectedPrice);
+            }
+    
+            // Sorting
+            const selectedSort = sortSelect.value;
+            if (selectedSort) {
+                url.searchParams.append('sort', selectedSort);
+            }
+    
+            return url.toString();
+        }
+        // Fetch data from the API based on filters or show all hotels
+        function fetchHotels() {
+            const url = buildApiUrl(); // Build URL with parameters
+            
+            fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                const hotelsContainer = document.querySelector('#hotels-container');
+                hotelsContainer.innerHTML = '';  // Clear previous hotels
+    
+                // Ensure data is an array before calling .forEach
+                if (Array.isArray(data)) {
+                    if (data.length !== 0) {
+                        data.forEach(element => {
+                            const truncatedDescription = element.hotel_description.length > 100
+                                ? element.hotel_description.slice(0, 100) + '...'
+                                : element.hotel_description;
+        
+                            // Create the HTML structure for each hotel dynamically
+                            const hotelHTML = `
+                                <div class="col-4">
+                                    <div class="card">
+                                        <img src="/media/${element.banner_image}" class="card-img-top" alt="${element.hotel_name}" height="150px">
+                                        <div class="card-body">
+                                            <h5 class="card-title">${element.hotel_name}</h5>
+                                            <p class="card-text">${truncatedDescription}</p>
+                                            <p class="card-text"><strong>Price:</strong> $${element.hotel_price}</p>
+                                            <a href="#" class="btn btn-primary stretched-link">Add to Cart</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            hotelsContainer.innerHTML += hotelHTML;
+                        });
+                    } else {
+                        hotelsContainer.innerHTML = "<p>No hotels found matching the filter criteria.</p>";
+                    }
+                } else {
+                    hotelsContainer.innerHTML = "<p>Unexpected response format. Please try again later.</p>";
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+                const hotelsContainer = document.querySelector('#hotels-container');
+                hotelsContainer.innerHTML = "<p>Error fetching hotels. Please try again later.</p>";
+            });
+        }
+    
+        // Update price range display value
+        const priceRange = document.getElementById("customRange3");
+        const priceValueDisplay = document.getElementById("price-value");
+        
+        // Initialize with max value
+        priceValueDisplay.textContent = priceRange.value;
+
+        priceRange.addEventListener("input", function () {
+            priceValueDisplay.textContent = priceRange.value;
+        });
+
+        // Event listeners for filters
+        priceRange.addEventListener("change", fetchHotels);
+        document.querySelector('select[name="amenities"]').addEventListener("change", fetchHotels);
+        document.querySelector('select[name="sort"]').addEventListener("change", fetchHotels);
+    
+        // Initial fetch on page load (this will fetch all hotels by default)
+        fetchHotels();
+    </script>
+  
+  </body>
+</html>
