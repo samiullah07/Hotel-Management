@@ -24,6 +24,20 @@ class Hotel(BaseModel):
     hotel_description = models.TextField()
     banner_img = models.ImageField(upload_to="hotel_images")
 
+    def get_Amenities(self):
+       payload = []
+
+       for obj in self.amenity.all():
+           payload.append({
+               "id" : obj.id,
+               "amenity_names" : obj.amenity_names,
+           })
+
+        
+       return payload
+
+
+
     def __str__(self):
         return self.hotel_name
 
